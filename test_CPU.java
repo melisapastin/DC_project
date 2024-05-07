@@ -1,74 +1,64 @@
 import java.math.*;
-import java.util.*;
+
+// computing the digits of pi using the Chudnovsky algorithm (to test the CPU)
+/* by performing a complex mathematical computation such as calculating pi with 
+   a large number of digits, this program tests the CPU's computational capabilities. 
+   The execution time provides insights into the CPU's performance for such tasks. */
 
 class DigitsOfPi {
-    // Compute the first n digits of pi using the Gauss-Legendre algorithm
-    public static BigDecimal computePi(int numDigits) {
-        // Precision for the calculations
-        MathContext mc = new MathContext(numDigits + 5, RoundingMode.HALF_UP);
+    // C represents the constant coefficient used in the Chudnovsky algorithm
+    private static final BigDecimal C = new BigDecimal("426880");
+    // SQRT_10005 represents the square root of 10005, used in the algorithm
+    private static final BigDecimal SQRT_10005 = new BigDecimal("10005").sqrt(MathContext.DECIMAL128);
+    // DIVISOR represents another constant divisor used in the algorithm
+    private static final BigDecimal DIVISOR = new BigDecimal("545140134");
 
-        // Initial values for Gauss-Legendre algorithm
-        // a0 = 1, b0 = 1/sqrt(2), t0 = 1/4, p0 = 1
-        BigDecimal a = BigDecimal.ONE;
-        BigDecimal b = BigDecimal.ONE.divide(BigDecimal.valueOf(2).sqrt(mc), mc);
-        BigDecimal t = BigDecimal.valueOf(1).divide(BigDecimal.valueOf(4), mc);
-        BigDecimal p = BigDecimal.ONE;
+    // this method calculates the value of pi with the desired number of digits using the Chudnovsky algorithm
+    public static BigDecimal computePi(int digits) {
+        // 14.1816474627254776555 is chosen empirically to ensure rapid convergence of the Chudnovsky algorithm
+        int k = (int) Math.ceil(digits / 14.1816474627254776555); 
+        // k represents the number of iterations required for the algorithm to converge sufficiently for the specified number of digits
+        // it reaches the desired accuracy/solution with relatively few iterations/computations
 
-        // Perform iterations of Gauss-Legendre algorithm
-        // aNext = (a + b) / 2
-        // bNext = sqrt(a * b) 
-        // tNext = t - p * (a - aNext) ^ 2  
-        // pNext = 2 * p
-        for (int i = 0; i < numDigits; i++) {
-            BigDecimal aNext = a.add(b).divide(BigDecimal.valueOf(2), mc);
-            BigDecimal bNext = a.multiply(b).sqrt(mc);
-            BigDecimal tNext = t.subtract(p.multiply(a.subtract(aNext).pow(2)));
-            BigDecimal pNext = p.multiply(BigDecimal.valueOf(2));
-
-            a = aNext;
-            b = bNext;
-            t = tNext;
-            p = pNext;
+        BigDecimal sum = BigDecimal.ZERO;
+        for (int i = 0; i < k; i++) {
+            /* inside the loop, two parts of the Chudnovsky series formula
+               are calculated: the numerator and the denominator
+               These calculations involve factorials, mathematical operations, and constants */
+            BigDecimal numerator = new BigDecimal(factorial(6 * i)).multiply(new BigDecimal("13591409").add(new BigDecimal("545140134").multiply(BigDecimal.valueOf(i))));
+            BigDecimal denominator = new BigDecimal(factorial(3 * i)).multiply(new BigDecimal(factorial(i)).pow(3)).multiply(new BigDecimal("-262537412640768000").pow(i));
+            sum = sum.add(numerator.divide(denominator, digits + 5, BigDecimal.ROUND_HALF_UP));
         }
 
-        // Compute pi using Gauss-Legendre formula: pi =~ ((a + b) ^ 2) / (4 * t)
-        BigDecimal pi = a.add(b).pow(2).divide(t.multiply(BigDecimal.valueOf(4)), mc);
-
-        // Return pi with the specified precision
-        return pi.setScale(numDigits, RoundingMode.DOWN);
+        // the final value of pi is calculated using the Chudnovsky algorithm formula (rounded)
+        return C.multiply(SQRT_10005).divide(sum, digits, BigDecimal.ROUND_HALF_UP);
     }
 
-    // Function to calculate a part of the CPU score formula  ((digits * log(numArithmeticOperations) / time (miliseconds))
-    public static double calculateCPUScore(int numDigits, BigDecimal numArithmeticOperations) {
-        // Calculate (digits * log(numArithmeticOperations))
-        double cpuScore = numDigits * Math.log(numArithmeticOperations.doubleValue());
-        return cpuScore;
+    // this method calculates the factorial of a given integer n using BigInteger to handle large numbers
+    public static BigInteger factorial(int n) {
+        BigInteger result = BigInteger.ONE;
+        for (int i = 2; i <= n; i++) {
+            result = result.multiply(BigInteger.valueOf(i));
+        }
+        return result;
     }
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+        try {
+            java.util.Scanner scanner = new java.util.Scanner(System.in);
+            System.out.print("Enter the number of digits of pi to compute: ");
+            int numDigits = scanner.nextInt();
+            scanner.close();
 
-        System.out.print("Enter the number of digits of pi to compute: ");
-        int numDigits = scanner.nextInt();
+            long startTime = System.nanoTime();
+            BigDecimal pi = computePi(numDigits);
+            long endTime = System.nanoTime();
+            long duration = endTime - startTime; 
 
-        // Calculate computation time in miliseconds
-        long startTime = System.currentTimeMillis();
-        BigDecimal pi = computePi(numDigits);
-        long endTime = System.currentTimeMillis();
-        long computationTime = endTime - startTime;
-
-        scanner.close();
-
-        // Calculate and display CPU score
-        // The number of arithmetic operations reflects how efficiently the algorithm computes pi relative to the computation time
-        BigDecimal numArithmeticOperations = new BigDecimal(numDigits * 9); // Each iteration involves 9 arithmetic operations
-        double cpuScore = calculateCPUScore(numDigits, numArithmeticOperations);
-        System.out.println("CPU Score: " + cpuScore);
-
-        // Display computation time in milliseconds
-        System.out.println("Computation time: " + computationTime + " milliseconds");
-
-        System.out.println("First " + numDigits + " digits of pi:");
-        System.out.println(pi);
+            System.out.println("Execution time: " + duration + " nanoseconds");
+            System.out.println("Pi: " + pi);
+        } catch (NumberFormatException e) {
+            System.out.println("Please enter a valid number of digits.");
+        }
     }
 }
