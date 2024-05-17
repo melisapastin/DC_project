@@ -38,10 +38,9 @@ class DigitsOfPi {
         return pi.setScale(numDigits, RoundingMode.DOWN);
     }
 
-    // Function to calculate a part of the CPU score formula  ((digits * log(numArithmeticOperations) / time (miliseconds))
-    public static double calculateCPUScore(int numDigits, BigDecimal numArithmeticOperations) {
-        // Calculate (digits * log(numArithmeticOperations))
-        double cpuScore = numDigits * Math.log(numArithmeticOperations.doubleValue());
+    // Function to calculate the CPU score formula ((digits * log(numArithmeticOperations)) / time (seconds))
+    public static double calculateCPUScore(int numDigits, BigDecimal numArithmeticOperations, double computationTimeSeconds) {
+        double cpuScore = (numDigits * Math.log(numArithmeticOperations.doubleValue())) / computationTimeSeconds;
         return cpuScore;
     }
 
@@ -51,24 +50,32 @@ class DigitsOfPi {
         System.out.print("Enter the number of digits of pi to compute: ");
         int numDigits = scanner.nextInt();
 
-        // Calculate computation time in miliseconds
-        long startTime = System.currentTimeMillis();
+        // Calculate computation time in nanoseconds
+        long startTime = System.nanoTime();
         BigDecimal pi = computePi(numDigits);
-        long endTime = System.currentTimeMillis();
-        long computationTime = endTime - startTime;
+        long endTime = System.nanoTime();
+        long computationTimeNanoseconds = endTime - startTime;
+
+        // Convert computation time to seconds
+        double computationTimeSeconds = computationTimeNanoseconds / 1_000_000_000.0;
 
         scanner.close();
 
         // Calculate and display CPU score
         // The number of arithmetic operations reflects how efficiently the algorithm computes pi relative to the computation time
         BigDecimal numArithmeticOperations = new BigDecimal(numDigits * 9); // Each iteration involves 9 arithmetic operations
-        double cpuScore = calculateCPUScore(numDigits, numArithmeticOperations);
+        double cpuScore = calculateCPUScore(numDigits, numArithmeticOperations, computationTimeSeconds);
         System.out.println("CPU Score: " + cpuScore);
 
-        // Display computation time in milliseconds
-        System.out.println("Computation time: " + computationTime + " milliseconds");
+        // Display computation time in seconds
+        System.out.println("Computation time: " + computationTimeSeconds + " seconds");
 
         System.out.println("First " + numDigits + " digits of pi:");
         System.out.println(pi);
     }
 }
+
+/* The score value gets bigger as the number of digits increases because the formula 
+   (digits×log(numArithmeticOperations))/computationTime is dominated by the digits 
+   term, which grows linearly with the number of digits, while the computation time 
+   does not increase as rapidly. */
