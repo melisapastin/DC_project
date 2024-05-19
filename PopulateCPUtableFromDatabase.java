@@ -15,7 +15,7 @@ public class PopulateCPUtableFromDatabase {
     private static Connection connection;
     private static Statement statement;
 
-    public static void InsertTestResultsIntoDatabase(double score, long time, int numDigits) {
+    public static void InsertTestResultsIntoDatabase(double score, double time, int numDigits) {
         try {
             // Establish connection to the database
             connection = DriverManager.getConnection(url, user, password);
@@ -43,9 +43,9 @@ public class PopulateCPUtableFromDatabase {
         }
     }
 
-    private static void InsertTestResultsIntoDatabase(int id, double score, long time, int numDigits) throws SQLException {
+    private static void InsertTestResultsIntoDatabase(int id, double score, double time, int numDigits) throws SQLException {
 
-        String query = String.format("INSERT INTO cpu (test_id,cpu_score,nr_of_pi_digits,time) VALUES('%d', '%f','%d','%d')", id, score, numDigits, time);
+        String query = String.format("INSERT INTO cpu (test_id,cpu_score,nr_of_pi_digits,time) VALUES('%d', '%f','%d','%f')", id, score, numDigits, time);
         statement.executeUpdate(query);
     }
 }
