@@ -1,3 +1,5 @@
+package org.example;
+
 import java.util.*;
 
 class SearchTheNumber {
@@ -69,7 +71,7 @@ class SearchTheNumber {
 
         // Print the RAM Score
         System.out.println("RAM Score: " + ramScore);
-
+        PopulateRAMtableFromDatabase.InsertTestResultsIntoDatabase(ramScore,durationInSeconds);
         scanner.close();
     }
 }
